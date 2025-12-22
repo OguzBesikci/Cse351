@@ -1,0 +1,85 @@
+%{
+	#include <stdio.h>
+	#include <iostream>
+	#include <string>
+	#include <map>
+	using namespace std;
+	#include "y.tab.h"
+	extern FILE *yyin;
+	extern int yylex();
+	void yyerror(string s);
+
+	/*
+		we need to store the name of variable and  value of it.
+		So we can use two array for that. One for keeping names, one for the values.
+		But it would be a little bit complicated.
+		Instead we use map library of c++.
+		This is not about lex and yacc it is about data structure
+	*/
+	map<string,int> values;
+%}
+
+%union
+{
+	int number;
+	char * str;
+}
+
+%token  MINUSOP PLUSOP OPENPAR CLOSEPAR DIVIDEOP MULTOP ASSIGNOP
+%token<number> INTEGER
+%token<str> VARIABLE
+%type<number> expression value
+
+%%
+
+program:
+  statement
+	|
+	statement program
+    ;
+
+statement:
+	VARIABLE ASSIGNOP expression
+	{
+				values[string($1)] = $3;
+				cout<<$1<<" = "<<values[string($1)]<<endl;
+	}
+    ;
+
+expression:
+						 
+	value {$$=$1;}
+	|
+	expression PLUSOP value     { $$ = $1 + $3; }
+    |
+	expression MINUSOP value     { $$ = $1 - $3; }
+    |
+	expression MULTOP value     { $$ = $1 * $3; }
+    |
+	expression DIVIDEOP value     { $$ = $1 / $3; }
+	
+    ;
+
+value:
+	VARIABLE	{  $$ = values[string($1)]; } 
+	|
+	INTEGER  {  $$ = $1; }
+	|
+	OPENPAR expression CLOSEPAR            { $$ = $2; }
+	;
+%%
+
+void yyerror(string s){
+	cout<<"error: "<<s<<endl;
+}
+int yywrap(){
+	return 1;
+}
+int main(int argc, char *argv[])
+{
+    /* Call the lexer, then quit. */
+    yyin=fopen(argv[1],"r");
+    yyparse();
+    fclose(yyin);
+    return 0;
+}

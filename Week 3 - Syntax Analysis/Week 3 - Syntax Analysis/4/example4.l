@@ -1,0 +1,26 @@
+digit	[0-9]
+letter	[A-Za-z]
+
+%{
+#include <stdio.h>
+#include <string.h>
+#include "y.tab.h"
+extern int yylval;
+int linenum=1;
+%}
+
+
+%%
+"int"|"double"	return TYPE;
+"if" return XYZ;
+"then" return THEN;
+"fi" return FI;
+{letter}({letter}|{digit})*	return IDENTIFIER;
+[0-9]+	return INTEGER;
+([0-9]+\.[0-9]+)	return DOUBLEVAL;
+"="	return EQ;
+;	return SEMICOLON;
+,	return COMMA;
+\n	{linenum++;}
+[ \t]+
+%%
